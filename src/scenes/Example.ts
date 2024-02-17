@@ -91,7 +91,7 @@ export default class Example extends Phaser.Scene {
 			frames: this.anims.generateFrameNumbers("wobble", {
 				frames: [0, 1, 0, 2, 0, 1, 0, 2, 0],
 			}),
-			frameRate: 24,
+			frameRate: 36,
 		});
 
 		this.physics.world.addListener("worldbounds", this.handleOutOfBounds, this);
@@ -183,7 +183,14 @@ export default class Example extends Phaser.Scene {
 			ball,
 			paddle,
 		) => {
-			(ball as Phaser.Physics.Arcade.Sprite).anims.play("wobble");
+			if (
+				!(ball instanceof Phaser.Physics.Arcade.Sprite) ||
+				!(paddle instanceof Phaser.Physics.Arcade.Sprite)
+			)
+				return;
+
+			ball.anims.play("wobble");
+			ball.body?.velocity.set(-5 * (paddle.x - ball.x), ball.body.velocity.y);
 		};
 
 		this.physics.collide(this.ball, this.paddle, ballHitPaddle);
