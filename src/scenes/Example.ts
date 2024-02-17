@@ -38,6 +38,11 @@ export default class Example extends Phaser.Scene {
 			"ball",
 			new URL("../assets/ball.png", import.meta.url).href,
 		);
+		this.load.spritesheet(
+			"wobble",
+			new URL("../assets/wobble.png", import.meta.url).href,
+			{ frameWidth: 20, frameHeight: 20 },
+		);
 		this.load.image(
 			"paddle",
 			new URL("../assets/paddle.png", import.meta.url).href,
@@ -70,6 +75,14 @@ export default class Example extends Phaser.Scene {
 			.setCollideWorldBounds(true, 1, 1, true)
 			.setBounce(1)
 			.setVelocity(150, -150);
+
+		this.ball.anims.create({
+			key: "wobble",
+			frames: this.anims.generateFrameNumbers("wobble", {
+				frames: [0, 1, 0, 2, 0, 1, 0, 2, 0],
+			}),
+			frameRate: 24,
+		});
 
 		this.physics.world.addListener("worldbounds", this.handleOutOfBounds, this);
 	}
@@ -127,7 +140,14 @@ export default class Example extends Phaser.Scene {
 	private handleBallPaddleCollision(): void {
 		if (!this.ball || !this.paddle || !this.bricks) return;
 
-		this.physics.collide(this.ball, this.paddle);
+		const ballHitPaddle: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (
+			ball,
+			paddle,
+		) => {
+			(ball as Phaser.Physics.Arcade.Sprite).anims.play("wobble");
+		};
+
+		this.physics.collide(this.ball, this.paddle, ballHitPaddle);
 	}
 
 	private handleBrickBallCollision(): void {
@@ -137,7 +157,19 @@ export default class Example extends Phaser.Scene {
 			ball,
 			brick,
 		) => {
-			brick.destroy(true);
+			this.tweens
+				.add({
+					targets: brick,
+					scaleX: 0,
+					scaleY: 0,
+					duration: 200,
+					ease: "Linear",
+					onComplete: () => {
+						brick.destroy();
+					},
+				} as Phaser.Types.Tweens.TweenBuilderConfig)
+				.play();
+
 			this.score += 10;
 			this.scoreText?.setText(`Points: ${this.score}`);
 
@@ -145,6 +177,8 @@ export default class Example extends Phaser.Scene {
 				alert("You won the game, congratulations!");
 				location.reload();
 			}
+
+			(ball as Phaser.Physics.Arcade.Sprite).anims.play("wobble");
 		};
 
 		this.physics.collide(this.ball, this.bricks, ballHitBrick);
@@ -155,8 +189,11 @@ export default class Example extends Phaser.Scene {
 		up: boolean,
 		down: boolean,
 	): void {
-		if (!down) return;
 		if (!this.ball || !this.paddle) return;
+		if (!down) {
+			this.ball.anims.play("wobble");
+			return;
+		}
 		if (!this.lifeText || !this.lifeLostText) return;
 
 		if (--this.life === 0) {
