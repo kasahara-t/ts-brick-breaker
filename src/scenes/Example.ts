@@ -28,6 +28,8 @@ export default class Example extends Phaser.Scene {
 	private life = 3;
 	private lifeText?: Phaser.GameObjects.Text;
 	private lifeLostText?: Phaser.GameObjects.Text;
+	private isPlaying = false;
+	private startButton?: Phaser.GameObjects.Image;
 
 	constructor() {
 		super("Example");
@@ -51,6 +53,14 @@ export default class Example extends Phaser.Scene {
 			"brick",
 			new URL("../assets/brick.png", import.meta.url).href,
 		);
+		this.load.spritesheet(
+			"button",
+			new URL("../assets/button.png", import.meta.url).href,
+			{
+				frameWidth: 120,
+				frameHeight: 40,
+			},
+		);
 	}
 
 	public create(): void {
@@ -59,6 +69,7 @@ export default class Example extends Phaser.Scene {
 		this.createBricks();
 		this.createScoreText();
 		this.createLifeText();
+		this.createStartButton();
 	}
 
 	public update(): void {
@@ -73,8 +84,7 @@ export default class Example extends Phaser.Scene {
 			.sprite(width * 0.5, height - 25, "ball")
 			.setOrigin(0.5)
 			.setCollideWorldBounds(true, 1, 1, true)
-			.setBounce(1)
-			.setVelocity(150, -150);
+			.setBounce(1);
 
 		this.ball.anims.create({
 			key: "wobble",
@@ -130,9 +140,38 @@ export default class Example extends Phaser.Scene {
 			.setVisible(false);
 	}
 
+	private createStartButton(): void {
+		this.startButton = this.add
+			.image(this.scale.width * 0.5, this.scale.height * 0.5, "button", 0)
+			.setInteractive();
+
+		this.startButton.on(
+			"pointerout",
+			() => {
+				this.startButton?.setFrame(0);
+			},
+			this,
+		);
+		this.startButton.on(
+			"pointerover",
+			() => {
+				this.startButton?.setFrame(1);
+			},
+			this,
+		);
+		this.startButton.on(
+			"pointerdown",
+			() => {
+				this.startButton?.setFrame(2);
+				this.startGame();
+			},
+			this,
+		);
+	}
+
 	private updatePaddlePosition(): void {
 		if (!this.paddle) return;
-		if (this.lifeLostText?.visible) return;
+		if (!this.isPlaying) return;
 
 		this.paddle.setX(this.input.x);
 	}
@@ -173,7 +212,7 @@ export default class Example extends Phaser.Scene {
 			this.score += 10;
 			this.scoreText?.setText(`Points: ${this.score}`);
 
-			if (this.bricks?.countActive() === 0) {
+			if (this.score === brickInfo.count.row * brickInfo.count.col * 10) {
 				alert("You won the game, congratulations!");
 				location.reload();
 			}
@@ -208,10 +247,25 @@ export default class Example extends Phaser.Scene {
 		this.ball.setPosition(width * 0.5, height - 25).setVelocity(0, 0);
 		this.paddle.setPosition(width * 0.5, height - 5);
 
-		this.input.on("pointerdown", () => {
-			this.lifeLostText?.setVisible(false);
-			this.ball?.setVelocity(150, -150);
-		});
+		this.input.on(
+			"pointerdown",
+			() => {
+				this.isPlaying = true;
+				this.lifeLostText?.setVisible(false);
+				this.ball?.setVelocity(150, -150);
+			},
+			this,
+		);
+
+		this.isPlaying = false;
+	}
+
+	private startGame(): void {
+		if (!this.ball) return;
+
+		this.isPlaying = true;
+		this.startButton?.destroy();
+		this.ball.setVelocity(150, -150);
 	}
 
 	// シーンのシャットダウン時にイベントリスナーをクリーンアップ
