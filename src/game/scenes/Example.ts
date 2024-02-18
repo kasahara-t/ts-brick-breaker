@@ -12,7 +12,7 @@ const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
   color: "#0095DD",
 };
 
-export default class Example extends Phaser.Scene {
+export default class MainScene extends Phaser.Scene {
   private ball?: Ball;
   private paddle?: Paddle;
   private bricks?: BrickGroup;
@@ -23,7 +23,7 @@ export default class Example extends Phaser.Scene {
   private isPlaying = false;
 
   constructor() {
-    super("Example");
+    super("MainScene");
   }
 
   public preload(): void {

@@ -1,4 +1,4 @@
-import Example from "@scenes/Example";
+import MainScene from "@scenes/Example";
 
 const isDebug = import.meta.env.MODE === "development";
 
@@ -6,7 +6,7 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 480,
   height: 320,
   type: Phaser.AUTO,
-  scene: [Example],
+  scene: [MainScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
