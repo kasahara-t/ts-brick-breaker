@@ -93,12 +93,14 @@ export default class MainScene extends Phaser.Scene {
   }
 
   private checkBallPaddleCollision(): void {
+    if (!this.isPlaying) return;
     if (!this.ball || !this.paddle) return;
 
     this.physics.collide(this.ball, this.paddle, this.handleBallHitPaddle, undefined, this);
   }
 
   private checkBallBrickCollision(): void {
+    if (!this.isPlaying) return;
     if (!this.ball || !this.bricks) return;
 
     this.physics.collide(this.ball, this.bricks, this.handleBallHitBrick, undefined, this);
@@ -111,7 +113,10 @@ export default class MainScene extends Phaser.Scene {
     if (!(ball instanceof Ball) || !(paddle instanceof Paddle)) return;
 
     ball.wobble();
-    ball.body?.velocity.set(-5 * (paddle.x - ball.x), ball.body.velocity.y);
+    const diff = (ball.x - paddle.x) / (paddle.width / 2);
+
+    const newAngle = (diff * Math.PI) / 4 - Math.PI / 2;
+    ball.fire(newAngle);
   }
 
   private handleBallHitBrick(
@@ -153,13 +158,13 @@ export default class MainScene extends Phaser.Scene {
   private startGame(): void {
     this.isPlaying = true;
     this.startButton?.destroy();
-    this.ball?.setVelocity(150, -150);
+    this.ball?.fire(-Math.PI * 0.5);
   }
 
   private continueGame(): void {
     this.isPlaying = true;
     this.lifeLostText?.setVisible(false);
-    this.ball?.setVelocity(150, -150);
+    this.ball?.fire(-Math.PI * 0.5);
   }
 
   private gameWon(): void {

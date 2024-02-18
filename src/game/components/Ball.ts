@@ -2,7 +2,7 @@ import Phaser from "phaser";
 
 export default class Ball extends Phaser.Physics.Arcade.Sprite {
   static BALL_BOUNDS = 1;
-  static BALL_SPEED = 200;
+  static BALL_SPEED = 300;
   static BALL_TEXTURE = "ball";
   static WOBBLE_TEXTURE = "wobble";
   static WOBBLE_KEY = "wobble";
@@ -32,7 +32,10 @@ export default class Ball extends Phaser.Physics.Arcade.Sprite {
   }
 
   public fire(angle: number): void {
-    // TODO: 指定された角度の方向にボールを発射する
+    const vx = Ball.BALL_SPEED * Math.cos(angle);
+    const vy = Ball.BALL_SPEED * Math.sin(angle);
+
+    this.setVelocity(vx, vy);
   }
 
   public wobble(): void {
