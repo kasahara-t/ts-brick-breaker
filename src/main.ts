@@ -1,4 +1,4 @@
-import Game from "./game";
-import "./global.scss";
+import Game from "./game/game";
+import "./styles/global.scss";
 
-const game = new Game();
+new Game();

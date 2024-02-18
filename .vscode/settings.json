@@ -6,5 +6,7 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports.biome": "always",
         "quickfix.biome": "always"
-    }
+    },
+    "editor.tabSize": 2,
+    "files.eol": "\n"
 }
