@@ -1,13 +1,14 @@
 import BrickGroup from "./BrickGroup";
 
-export const BRICK_WIDTH = 50;
-export const BRICK_HEIGHT = 20;
-
 export default class Brick extends Phaser.Physics.Arcade.Sprite {
+  static BRICK_WIDTH = 50;
+  static BRICK_HEIGHT = 20;
+  static BRICK_TEXTURE = "brick";
+
   public isBroken = false;
 
   constructor(group: BrickGroup, x: number, y: number) {
-    super(group.scene, x, y, "brick");
+    super(group.scene, x, y, Brick.BRICK_TEXTURE);
     group.scene.add.existing(this);
     group.add(this);
     this.scene.physics.world.enable(this);
@@ -15,7 +16,7 @@ export default class Brick extends Phaser.Physics.Arcade.Sprite {
     this.setOrigin(0.5).setImmovable(true);
   }
 
-  public break = () => {
+  public break(): void {
     const tweenConfig: Phaser.Types.Tweens.TweenBuilderConfig = {
       targets: this,
       scaleX: 0,
@@ -28,5 +29,5 @@ export default class Brick extends Phaser.Physics.Arcade.Sprite {
 
     this.scene.tweens.add(tweenConfig).play();
     this.isBroken = true;
-  };
+  }
 }

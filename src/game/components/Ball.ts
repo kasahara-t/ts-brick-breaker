@@ -1,29 +1,46 @@
 import Phaser from "phaser";
 
-const BALL_BOUNDS = 1;
-
 export default class Ball extends Phaser.Physics.Arcade.Sprite {
+  static BALL_BOUNDS = 1;
+  static BALL_SPEED = 200;
+  static BALL_TEXTURE = "ball";
+  static WOBBLE_TEXTURE = "wobble";
+  static WOBBLE_KEY = "wobble";
+
+  private initialX = 0;
+  private initialY = 0;
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, "ball");
+    super(scene, x, y, Ball.BALL_TEXTURE);
     scene.add.existing(this);
     scene.physics.world.enable(this);
 
-    this.setOrigin(0.5).setCollideWorldBounds(true, BALL_BOUNDS, BALL_BOUNDS, true).setBounce(BALL_BOUNDS);
+    this.initialX = x;
+    this.initialY = y;
+
+    this.setOrigin(0.5)
+      .setCollideWorldBounds(true, Ball.BALL_BOUNDS, Ball.BALL_BOUNDS, true)
+      .setBounce(Ball.BALL_BOUNDS);
 
     this.anims.create({
-      key: "wobble",
-      frames: this.anims.generateFrameNumbers("wobble", {
+      key: Ball.WOBBLE_KEY,
+      frames: this.anims.generateFrameNumbers(Ball.WOBBLE_TEXTURE, {
         frames: [0, 1, 0, 2, 0, 1, 0, 2, 0],
       }),
       frameRate: 24,
     });
   }
 
-  public fire = (paddle: Phaser.Physics.Arcade.Sprite) => {
-    this.setVelocity(-75, -300);
-  };
+  public fire(angle: number): void {
+    // TODO: 指定された角度の方向にボールを発射する
+  }
 
-  public wobble = () => {
-    this.anims.play("wobble");
-  };
+  public wobble(): void {
+    this.anims.play(Ball.WOBBLE_KEY, true);
+  }
+
+  public reset(): void {
+    this.setPosition(this.initialX, this.initialY);
+    this.setVelocity(0, 0);
+  }
 }

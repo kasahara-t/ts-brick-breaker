@@ -1,23 +1,25 @@
 export default class StartButton extends Phaser.GameObjects.Image {
+  static BUTTON_TEXTURE = "button";
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, "button", 0);
+    super(scene, x, y, StartButton.BUTTON_TEXTURE, 0);
     scene.add.existing(this);
     this.setInteractive();
 
-    this.on("pointerout", this.pointerOut);
-    this.on("pointerover", this.pointerOver);
-    this.on("pointerdown", this.pointerDown);
+    this.addListener("pointerout", this.pointerOut);
+    this.addListener("pointerover", this.pointerOver);
+    this.addListener("pointerdown", this.pointerDown);
   }
 
-  private pointerOver = () => {
+  private pointerOver(): void {
     this.setFrame(1);
-  };
+  }
 
-  private pointerOut = () => {
+  private pointerOut(): void {
     this.setFrame(0);
-  };
+  }
 
-  private pointerDown = () => {
+  private pointerDown(): void {
     this.setFrame(2);
-  };
+  }
 }

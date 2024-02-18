@@ -26,41 +26,39 @@ export default class Example extends Phaser.Scene {
     super("Example");
   }
 
-  public preload = () => {
-    this.load.image("ball", getAssetUrl("images/ball.png"));
-    this.load.spritesheet("wobble", getAssetUrl("images/wobble.png"), {
+  public preload(): void {
+    this.load.image(Ball.BALL_TEXTURE, getAssetUrl("images/ball.png"));
+    this.load.spritesheet(Ball.WOBBLE_TEXTURE, getAssetUrl("images/wobble.png"), {
       frameWidth: 20,
       frameHeight: 20,
     });
-    this.load.image("paddle", getAssetUrl("images/paddle.png"));
-    this.load.image("brick", getAssetUrl("images/brick.png"));
-    this.load.spritesheet("button", getAssetUrl("images/button.png"), {
+    this.load.image(Paddle.PADDLE_TEXTURE, getAssetUrl("images/paddle.png"));
+    this.load.image(Brick.BRICK_TEXTURE, getAssetUrl("images/brick.png"));
+    this.load.spritesheet(StartButton.BUTTON_TEXTURE, getAssetUrl("images/button.png"), {
       frameWidth: 120,
       frameHeight: 40,
     });
-  };
+  }
 
-  public create = () => {
+  public create(): void {
     this.createBall();
     this.createPaddle();
     this.createBricks();
     this.createScoreText();
     this.createLifeText();
     this.createStartButton();
-  };
+  }
 
-  public update = () => {
+  public update(): void {
     this.updatePaddlePosition();
-    this.handleBallPaddleCollision();
-    this.handleBrickBallCollision();
-  };
+    this.checkBallPaddleCollision();
+    this.checkBallBrickCollision();
+  }
 
-  private createBall = () => {
-    const { width, height } = this.scale;
-    this.ball = new Ball(this, width * 0.5, height - 25);
-
+  private createBall(): void {
+    this.ball = new Ball(this, this.scale.width * 0.5, this.scale.height - 25);
     this.physics.world.addListener("worldbounds", this.handleOutOfBounds, this);
-  };
+  }
 
   private createPaddle(): void {
     this.paddle = new Paddle(this, this.scale.width * 0.5, this.scale.height - 5);
@@ -85,7 +83,7 @@ export default class Example extends Phaser.Scene {
   private createStartButton(): void {
     this.startButton = new StartButton(this, this.scale.width * 0.5, this.scale.height * 0.5);
 
-    this.startButton.on("pointerdown", this.startGame, this);
+    this.startButton.addListener("pointerdown", this.startGame, this);
   }
 
   private updatePaddlePosition(): void {
@@ -94,37 +92,44 @@ export default class Example extends Phaser.Scene {
     this.paddle?.followPointer();
   }
 
-  private handleBallPaddleCollision(): void {
+  private checkBallPaddleCollision(): void {
     if (!this.ball || !this.paddle) return;
 
-    const ballHitPaddle: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (ball, paddle) => {
-      if (!(ball instanceof Ball) || !(paddle instanceof Paddle)) return;
-      ball.wobble();
-      ball.body?.velocity.set(-5 * (paddle.x - ball.x), ball.body.velocity.y);
-    };
-
-    this.physics.collide(this.ball, this.paddle, ballHitPaddle);
+    this.physics.collide(this.ball, this.paddle, this.handleBallHitPaddle);
   }
 
-  private handleBrickBallCollision(): void {
+  private checkBallBrickCollision(): void {
     if (!this.ball || !this.bricks) return;
 
-    const ballHitBrick: Phaser.Types.Physics.Arcade.ArcadePhysicsCallback = (ball, brick) => {
-      if (!(brick instanceof Brick) || !(this.bricks instanceof BrickGroup) || !(ball instanceof Ball)) return;
+    this.physics.collide(this.ball, this.bricks, this.handleBallHitBrick);
+  }
 
-      brick.break();
+  private handleBallHitPaddle(
+    ball: Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile,
+    paddle: Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile,
+  ): void {
+    if (!(ball instanceof Ball) || !(paddle instanceof Paddle)) return;
 
-      this.score += 10;
-      this.scoreText?.setText(`Points: ${this.score}`);
+    ball.wobble();
+    ball.body?.velocity.set(-5 * (paddle.x - ball.x), ball.body.velocity.y);
+  }
 
-      if (this.bricks.countActiveBricks() === 0) {
-        this.gameWon();
-      }
+  private handleBallHitBrick(
+    ball: Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile,
+    brick: Phaser.Types.Physics.Arcade.GameObjectWithBody | Phaser.Tilemaps.Tile,
+  ): void {
+    if (!(brick instanceof Brick) || !(ball instanceof Ball)) return;
 
-      ball.wobble();
-    };
+    brick.break();
 
-    this.physics.collide(this.ball, this.bricks, ballHitBrick);
+    this.score += 10;
+    this.scoreText?.setText(`Points: ${this.score}`);
+
+    if (this.bricks?.countActiveBricks() === 0) {
+      this.gameWon();
+    }
+
+    ball.wobble();
   }
 
   private handleOutOfBounds(body: Phaser.Physics.Arcade.Body, up: boolean, down: boolean): void {
@@ -132,22 +137,21 @@ export default class Example extends Phaser.Scene {
       this.ball?.wobble();
       return;
     }
-    if (!this.lifeText || !this.lifeLostText) return;
 
-    if (--this.life === 0) {
+    this.isPlaying = false;
+
+    this.life--;
+    this.lifeText?.setText(`Lives: ${this.life}`);
+
+    if (this.life === 0) {
       this.gameOver();
     }
 
-    this.lifeText.setText(`Lives: ${this.life}`);
-    this.lifeLostText.setVisible(true);
+    this.ball?.reset();
+    this.paddle?.reset();
 
-    const { width, height } = this.scale;
-    this.ball?.setPosition(width * 0.5, height - 25).setVelocity(0, 0);
-    this.paddle?.setPosition(width * 0.5, height - 5);
-
+    this.lifeLostText?.setVisible(true);
     this.input.on("pointerdown", this.continueGame, this);
-
-    this.isPlaying = false;
   }
 
   private startGame(): void {
@@ -170,10 +174,5 @@ export default class Example extends Phaser.Scene {
   private gameOver(): void {
     alert("Game Over");
     location.reload();
-  }
-
-  // シーンのシャットダウン時にイベントリスナーをクリーンアップ
-  public shutdown(): void {
-    this.physics.world.removeListener("worldbounds", this.handleOutOfBounds, this);
   }
 }
