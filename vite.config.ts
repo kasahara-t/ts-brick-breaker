@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(() => ({
-  base: "./",
+  base: process.env.GITHUB_PAGES ? "ts-brick-breaker" : "./",
   build: {
     outDir: "docs",
   },
