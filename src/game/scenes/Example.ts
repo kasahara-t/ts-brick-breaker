@@ -135,7 +135,7 @@ export default class MainScene extends Phaser.Scene {
     }
   }
 
-  private handleOutOfBounds(body: Phaser.Physics.Arcade.Body, up: boolean, down: boolean): void {
+  private handleOutOfBounds(_body: Phaser.Physics.Arcade.Body, _up: boolean, down: boolean): void {
     if (!down) {
       this.ball?.wobble();
       return;
