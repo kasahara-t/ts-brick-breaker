@@ -6,6 +6,7 @@ export default defineConfig(() => ({
   base: process.env.GITHUB_PAGES ? "ts-brick-breaker" : "./",
   build: {
     outDir: "docs",
+    assetsInlineLimit: 0,
   },
   server: {
     port: 8000,
