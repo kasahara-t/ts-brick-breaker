@@ -3,6 +3,8 @@ import Brick from "@components/Brick";
 import BrickGroup from "@components/BrickGroup";
 import Paddle from "@components/Paddle";
 import StartButton from "@components/StartButton";
+import LifeManager from "@managers/LifeManager";
+import ScoreManager from "@managers/ScoreManager";
 import { getAssetUrl } from "../utils/helpers";
 
 const textStyle: Phaser.Types.GameObjects.Text.TextStyle = {
@@ -14,13 +16,11 @@ export default class Example extends Phaser.Scene {
   private ball?: Ball;
   private paddle?: Paddle;
   private bricks?: BrickGroup;
-  private score = 0;
-  private scoreText?: Phaser.GameObjects.Text;
-  private life = 3;
-  private lifeText?: Phaser.GameObjects.Text;
+  private startButton?: StartButton;
+  private scoreManager?: ScoreManager;
+  private lifeManager?: LifeManager;
   private lifeLostText?: Phaser.GameObjects.Text;
   private isPlaying = false;
-  private startButton?: StartButton;
 
   constructor() {
     super("Example");
@@ -69,11 +69,11 @@ export default class Example extends Phaser.Scene {
   }
 
   private createScoreText(): void {
-    this.scoreText = this.add.text(5, 5, "Points: 0", textStyle);
+    this.scoreManager = new ScoreManager(this, 5, 5, textStyle);
   }
 
   private createLifeText(): void {
-    this.lifeText = this.add.text(this.scale.width - 5, 5, `Lives: ${this.life}`, textStyle).setOrigin(1, 0);
+    this.lifeManager = new LifeManager(this, this.scale.width - 5, 5, textStyle);
     this.lifeLostText = this.add
       .text(this.scale.width * 0.5, this.scale.height * 0.5, "Life lost, click to continue", textStyle)
       .setOrigin(0.5)
@@ -95,13 +95,13 @@ export default class Example extends Phaser.Scene {
   private checkBallPaddleCollision(): void {
     if (!this.ball || !this.paddle) return;
 
-    this.physics.collide(this.ball, this.paddle, this.handleBallHitPaddle);
+    this.physics.collide(this.ball, this.paddle, this.handleBallHitPaddle, undefined, this);
   }
 
   private checkBallBrickCollision(): void {
     if (!this.ball || !this.bricks) return;
 
-    this.physics.collide(this.ball, this.bricks, this.handleBallHitBrick);
+    this.physics.collide(this.ball, this.bricks, this.handleBallHitBrick, undefined, this);
   }
 
   private handleBallHitPaddle(
@@ -120,16 +120,14 @@ export default class Example extends Phaser.Scene {
   ): void {
     if (!(brick instanceof Brick) || !(ball instanceof Ball)) return;
 
+    ball.wobble();
+
+    this.scoreManager?.addScore(10);
+
     brick.break();
-
-    this.score += 10;
-    this.scoreText?.setText(`Points: ${this.score}`);
-
     if (this.bricks?.countActiveBricks() === 0) {
       this.gameWon();
     }
-
-    ball.wobble();
   }
 
   private handleOutOfBounds(body: Phaser.Physics.Arcade.Body, up: boolean, down: boolean): void {
@@ -140,10 +138,8 @@ export default class Example extends Phaser.Scene {
 
     this.isPlaying = false;
 
-    this.life--;
-    this.lifeText?.setText(`Lives: ${this.life}`);
-
-    if (this.life === 0) {
+    this.lifeManager?.loseLife();
+    if (this.lifeManager?.isGameOver()) {
       this.gameOver();
     }
 
