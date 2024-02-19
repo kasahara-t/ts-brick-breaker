@@ -35,7 +35,7 @@ pnpm install
 3. 開発サーバーを起動します。
 
 ```bash
-pnpm start
+pnpm run dev
 ```
 
 http://localhost:8000でゲームをプレイできます。
