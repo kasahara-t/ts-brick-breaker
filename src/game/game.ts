@@ -1,4 +1,4 @@
-import MainScene from "@scenes/Example";
+import MainScene from "@scenes/MainScene";
 
 const isDebug = import.meta.env.MODE === "development";
 
